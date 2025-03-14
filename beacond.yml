@@ -1,0 +1,75 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  consensus:
+    build:
+      context: ./beacond
+      dockerfile: ${BEACOND_DOCKERFILE}
+      args:
+        - USER=beacond
+        - DAEMON_VERSION=${BEACOND_APP_VERSION}
+        - DAEMON_HOME=/cosmos
+        - DAEMON_NAME=beacond
+    image: beacond:${BEACOND_APP_VERSION}
+    pull_policy: never
+    user: beacond
+    restart: unless-stopped
+    stop_grace_period: 5m
+    environment:
+      - DAEMON_VERSION=${BEACOND_APP_VERSION}
+      - DAEMON_HOME=/cosmos
+      - CHAIN_SPEC=${CHAIN_SPEC:-mainnet}
+      - MONIKER_NAME=${MONIKER_NAME:-GalaxyDigital}
+      - WALLET_ADDRESS_FEE_RECIPIENT=${WALLET_ADDRESS_FEE_RECIPIENT:-0x9BcaA41DC32627776b1A4D714Eef627E640b3EF5}
+      - EL_ARCHIVE_NODE=${EL_ARCHIVE_NODE:-false}
+      - MY_IP=${MY_IP:-$(curl -s ipv4.canhazip.com)}
+    ports:
+      - ${CL_P2P_PORT:-26656}:${CL_P2P_PORT:-26656}/tcp
+      - ${CL_RPC_PORT:-26657}:${CL_RPC_PORT:-26657}/tcp
+    <<: *logging
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - consensus-data:/cosmos
+    entrypoint:
+      - docker-entrypoint.sh
+      - beacond
+      - start
+      - --home
+      - /cosmos
+    labels:
+        - traefik.enable=true
+        - traefik.http.routers.${RPC_HOST}.service=${RPC_HOST}
+        - traefik.http.routers.${RPC_HOST}.entrypoints=websecure
+        - traefik.http.routers.${RPC_HOST}.rule=Host(`${RPC_HOST}.${DOMAIN}`)
+        - traefik.http.routers.${RPC_HOST}.tls.certresolver=letsencrypt
+        - traefik.http.routers.${RPC_HOST}lb.service=${RPC_HOST}
+        - traefik.http.routers.${RPC_HOST}lb.entrypoints=websecure
+        - traefik.http.routers.${RPC_HOST}lb.rule=Host(`${RPC_LB}.${DOMAIN}`)
+        - traefik.http.routers.${RPC_HOST}lb.tls.certresolver=letsencrypt
+        - traefik.http.services.${RPC_HOST}.loadbalancer.server.port=${RPC_PORT}
+        - traefik.http.routers.${WS_HOST:-beacondws}.service=${WS_HOST:-beacondws}
+        - traefik.http.routers.${WS_HOST:-beacondws}.entrypoints=websecure
+        - traefik.http.routers.${WS_HOST:-beacondws}.rule=Host(`${WS_HOST:-beacondws}.${DOMAIN}`)
+        - traefik.http.routers.${WS_HOST:-beacondws}.tls.certresolver=letsencrypt
+        - traefik.http.routers.${WS_HOST:-beacondws}lb.service=${WS_HOST:-beacondws}
+        - traefik.http.routers.${WS_HOST:-beacondws}lb.entrypoints=websecure
+        - traefik.http.routers.${WS_HOST:-beacondws}lb.rule=Host(`${WS_LB:-beacondws-lb}.${DOMAIN}`)
+        - traefik.http.routers.${WS_HOST:-beacondws}lb.tls.certresolver=letsencrypt
+        - traefik.http.services.${WS_HOST:-beacondws}.loadbalancer.server.port=${WS_PORT:-8546}
+        - metrics.scrape=true
+        - metrics.path=/metrics
+        - metrics.port=26660
+        - metrics.instance=beacond
+        - metrics.network=${NETWORK}
+
+volumes:
+  consensus-data:
