@@ -1,0 +1,65 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  execution:
+    restart: "unless-stopped"
+    build:
+      context: ./reth
+      dockerfile: ${RETH_DOCKERFILE}
+      args:
+        - DOCKER_TAG=${RETH_DOCKER_TAG}
+        - DOCKER_REPO=${RETH_DOCKER_REPO}
+    stop_grace_period: 5m
+    stop_signal: SIGINT
+    image: berachain-reth:${RETH_DOCKER_TAG}
+    pull_policy: never
+    user: reth
+    environment:
+      - CHAIN_SPEC=${CHAIN_SPEC}
+      - EL_AUTH_PORT=${EL_AUTH_PORT}
+      - EL_P2P_PORT=${EL_P2P_PORT}
+      - PROMETHEUS_PORT=${CL_PROMETHEUS_PORT}
+      - EL_RPC_PORT=${EL_RPC_PORT}
+      - MY_IP=${MY_IP}
+    networks:
+      default:
+        aliases:
+          - ${CHAIN_SPEC}-execution
+    volumes:
+      - reth-el-data:/var/lib/reth
+      - common-data:/common
+      - ./reth/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+    ports:
+      - ${EL_P2P_PORT}:${EL_P2P_PORT}/tcp
+      - ${EL_P2P_PORT}:${EL_P2P_PORT}/udp
+    depends_on:
+      - consensus
+    <<: *logging
+    entrypoint:
+      - docker-entrypoint.sh
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${RPC_HOST}.service=${RPC_HOST}
+      - traefik.http.routers.${RPC_HOST}.entrypoints=websecure
+      - traefik.http.routers.${RPC_HOST}.rule=Host(`${RPC_HOST}.${DOMAIN}`)
+      - traefik.http.routers.${RPC_HOST}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${RPC_HOST}lb.service=${RPC_HOST}
+      - traefik.http.routers.${RPC_HOST}lb.entrypoints=websecure
+      - traefik.http.routers.${RPC_HOST}lb.rule=Host(`${RPC_LB}.${DOMAIN}`)
+      - traefik.http.routers.${RPC_HOST}lb.tls.certresolver=letsencrypt
+      - traefik.http.services.${RPC_HOST}.loadbalancer.server.port=${EL_RPC_PORT}
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=${EL_PROMETHEUS_PORT}
+      - metrics.instance=execution
+      - metrics.network=${CHAIN_SPEC}
+
+volumes:
+  reth-el-data:
+  common-data:

@@ -4,30 +4,7 @@ set -e
 # Ensure Beacond binary exists
 command -v beacond >/dev/null 2>&1 || { echo >&2 "Error: Beacond binary not found!"; exit 1; }
 
-# Default environment variables (can be overridden at runtime)
-export CHAIN_SPEC="${CHAIN_SPEC:-mainnet}"  # "mainnet" or "testnet"
-export MONIKER_NAME="${MONIKER_NAME:-camembera}"
-export WALLET_ADDRESS_FEE_RECIPIENT="${WALLET_ADDRESS_FEE_RECIPIENT:-0x9BcaA41DC32627776b1A4D714Eef627E640b3EF5}"
-export EL_ARCHIVE_NODE="${EL_ARCHIVE_NODE:-false}"
-export MY_IP=$(curl -s ifconfig.me/ip)
-export MY_IP="${MY_IP:-127.0.0.1}"  # Default if empty
-
-# Define directories
-export LOG_DIR=$(pwd)/logs
-export BEACOND_BIN=beacond
-export BEACOND_DATA="$DAEMON_HOME"
-export BEACOND_CONFIG=$BEACOND_DATA/config
-export JWT_PATH=$BEACOND_CONFIG/jwt.hex
-
-# Define ports (override via env vars)
-export CL_ETHRPC_PORT="${CL_ETHRPC_PORT:-26657}"
-export CL_ETHP2P_PORT="${CL_ETHP2P_PORT:-26656}"
-export CL_ETHPROXY_PORT="${CL_ETHPROXY_PORT:-26658}"
-export EL_ETHRPC_PORT="${EL_ETHRPC_PORT:-8545}"
-export EL_AUTHRPC_PORT="${EL_AUTHRPC_PORT:-8551}"
-export EL_ETH_PORT="${EL_ETH_PORT:-30303}"
-export PROMETHEUS_PORT="${PROMETHEUS_PORT:-9101}"
-
+export CHAIN_SPEC="${CHAIN_SPEC}"
 # Set network chain ID
 if [[ "$CHAIN_SPEC" == "testnet" ]]; then
     export CHAIN="testnet-beacon-80069"
@@ -37,7 +14,32 @@ else
     export CHAIN_ID="80094"
 fi
 
-export SEED_DATA_DIR=$(pwd)/seed-data-$CHAIN_ID
+export MONIKER_NAME="${MONIKER_NAME}"
+export WALLET_ADDRESS_FEE_RECIPIENT="${WALLET_ADDRESS_FEE_RECIPIENT}"
+export EL_ARCHIVE_NODE="${EL_ARCHIVE_NODE}"
+
+# Determine my IP
+if [ -z "$MY_IP" ]; then
+    export MY_IP=$(curl -s ifconfig.me/ip)
+    export MY_IP="${MY_IP:-127.0.0.1}"
+fi
+
+# Define directories
+export LOG_DIR=$(pwd)/logs
+export BEACOND_DATA=$(pwd)
+export BEACOND_CONFIG=$BEACOND_DATA/config
+export JWT_PATH=/common/jwt.hex
+
+# Define ports (override via env vars)
+export CL_RPC_PORT="${CL_RPC_PORT}"
+export CL_P2P_PORT="${CL_P2P_PORT}"
+export CL_PROXY_PORT="${CL_PROXY_PORT}"
+
+export EL_AUTHRPC_PORT="${EL_AUTH_PORT}"
+
+export PROMETHEUS_PORT="${PROMETHEUS_PORT}"
+
+export SEED_DATA_DIR=/common/seed-data-$CHAIN_SPEC
 
 # Fetch Berachain parameters
 echo "Fetching Berachain parameters..."
@@ -46,22 +48,25 @@ SEED_DATA_URL="https://raw.githubusercontent.com/berachain/beacon-kit/refs/heads
 
 curl -s -o "$SEED_DATA_DIR/kzg-trusted-setup.json" "$SEED_DATA_URL/kzg-trusted-setup.json"
 curl -s -o "$SEED_DATA_DIR/genesis.json" "$SEED_DATA_URL/genesis.json"
-curl -s -o "$SEED_DATA_DIR/eth-genesis.json" "$SEED_DATA_URL/eth-genesis.json"
+curl -s -o "$SEED_DATA_DIR/eth-genesis.json" $SEED_DATA_URL/eth-genesis.json
 curl -s -o "$SEED_DATA_DIR/eth-nether-genesis.json" "$SEED_DATA_URL/eth-nether-genesis.json"
 curl -s -o "$SEED_DATA_DIR/el-peers.txt" "$SEED_DATA_URL/el-peers.txt"
 curl -s -o "$SEED_DATA_DIR/el-bootnodes.txt" "$SEED_DATA_URL/el-bootnodes.txt"
 curl -s -o "$SEED_DATA_DIR/app.toml" "$SEED_DATA_URL/app.toml"
 curl -s -o "$SEED_DATA_DIR/config.toml" "$SEED_DATA_URL/config.toml"
 
+# Marker to be used by reth
+echo "Done downloading configs" > "$SEED_DATA_DIR/done.txt"
+
 # Initialize Beacond if not already initialized
 if [ ! -f "$BEACOND_CONFIG/priv_validator_key.json" ]; then
     echo "Initializing..."
     mkdir -p "$BEACOND_DATA" "$BEACOND_CONFIG" "$LOG_DIR"
 
-    $BEACOND_BIN init "$MONIKER_NAME" --chain-id "$CHAIN" --home "$BEACOND_DATA"
+    beacond init "$MONIKER_NAME" --chain-id "$CHAIN" --home "$BEACOND_DATA"
 
     # Generate JWT secret
-    $BEACOND_BIN jwt generate -o "$JWT_PATH"
+    beacond jwt generate -o "$JWT_PATH"
     echo "✓ JWT secret generated"
 
     # Copy seed data
@@ -73,16 +78,16 @@ fi
 
 # Update config files with runtime values
 dasel put -f "$BEACOND_CONFIG/config.toml" -v "$MONIKER_NAME" moniker
-dasel put -f "$BEACOND_CONFIG/config.toml" -v "tcp://0.0.0.0:$CL_ETHRPC_PORT" rpc.laddr
-dasel put -f "$BEACOND_CONFIG/config.toml" -v "tcp://0.0.0.0:$CL_ETHP2P_PORT" p2p.laddr
-dasel put -f "$BEACOND_CONFIG/config.toml" -v "$MY_IP:$CL_ETHP2P_PORT" p2p.external_address
-dasel put -f "$BEACOND_CONFIG/config.toml" -v "tcp://0.0.0.0:$CL_ETHPROXY_PORT" proxy_app
+dasel put -f "$BEACOND_CONFIG/config.toml" -v "tcp://0.0.0.0:$CL_RPC_PORT" rpc.laddr
+dasel put -f "$BEACOND_CONFIG/config.toml" -v "tcp://0.0.0.0:$CL_P2P_PORT" p2p.laddr
+dasel put -f "$BEACOND_CONFIG/config.toml" -v "$MY_IP:$CL_P2P_PORT" p2p.external_address
+dasel put -f "$BEACOND_CONFIG/config.toml" -v "tcp://0.0.0.0:$CL_PROXY_PORT" proxy_app
 dasel put -f "$BEACOND_CONFIG/config.toml" -v ":$PROMETHEUS_PORT" instrumentation.prometheus_listen_addr
 
 dasel put -f "$BEACOND_CONFIG/app.toml" -v "$JWT_PATH" beacon-kit.engine.jwt-secret-path
 dasel put -f "$BEACOND_CONFIG/app.toml" -v "$BEACOND_CONFIG/kzg-trusted-setup.json" beacon-kit.kzg.trusted-setup-path
 dasel put -f "$BEACOND_CONFIG/app.toml" -v "$WALLET_ADDRESS_FEE_RECIPIENT" beacon-kit.payload-builder.suggested-fee-recipient
-dasel put -f "$BEACOND_CONFIG/app.toml" -v "http://localhost:$EL_AUTHRPC_PORT" beacon-kit.engine.rpc-dial-url
+dasel put -f "$BEACOND_CONFIG/app.toml" -v "http://$CHAIN_SPEC-execution:$EL_AUTHRPC_PORT" beacon-kit.engine.rpc-dial-url
 
 echo "✓ Config files updated"
 
@@ -97,8 +102,8 @@ echo "✓ Beacon-Kit set up. Confirm genesis root is correct."
 
 # Start Beacond
 echo "Starting Beacond..."
-if [ -n "$EXTRA_FLAGS" ]; then
-    exec "$@" $EXTRA_FLAGS
+if [ -n "$CL_EXTRA_FLAGS" ]; then
+    exec "$@" $CL_EXTRA_FLAGS
 else
     exec "$@"
 fi

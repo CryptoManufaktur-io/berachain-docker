@@ -1,0 +1,5 @@
+services:
+  consensus:
+    ports:
+      - ${CL_RPC_PORT}:${CL_RPC_PORT}/tcp
+      - ${CL_PROXY_PORT}:${CL_PROXY_PORT}/tcp

@@ -1,0 +1,5 @@
+services:
+  execution:
+    ports:
+      - ${EL_RPC_PORT}:${EL_RPC_PORT}/tcp
+      - ${EL_WS_PORT}:${EL_WS_PORT}/tcp

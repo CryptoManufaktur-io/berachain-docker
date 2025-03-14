@@ -1,0 +1,35 @@
+ARG RETH_DOCKER_TAG=latest
+ARG RETH_DOCKER_REPO=ghcr.io/paradigmxyz/reth
+
+FROM ${RETH_DOCKER_REPO}:${RETH_DOCKER_TAG}
+
+ARG USER=reth
+ARG UID=10001
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y --no-install-recommends \
+  ca-certificates \
+  tzdata \
+  curl \
+  gosu \
+  git \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# See https://stackoverflow.com/a/55757473/12429735RUN
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --shell "/sbin/nologin" \
+    --uid "${UID}" \
+    "${USER}"
+
+RUN mkdir -p /var/lib/reth && chown -R ${USER}:${USER} /var/lib/reth && chmod -R 700 /var/lib/reth
+
+# Cannot assume buildkit, hence no chmod
+COPY --chown=${USER}:${USER} ./docker-entrypoint.sh /usr/local/bin/
+# Belt and suspenders
+RUN chmod -R 755 /usr/local/bin/*
+
+USER ${USER}
+
+ENTRYPOINT ["reth", "node"]

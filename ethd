@@ -10,6 +10,34 @@ __compose_upgraded=0
 
 # Also adjust version() and __env_migrate for your chain, look for the word "Adjust" below
 
+status() {
+  __var="COMPOSE_FILE"
+  __value=$(__get_value_from_env "${__var}" "${__env_file}")
+
+  echo "Checking clients status"
+  case "${__value}" in
+    *beacond.yml* )
+      echo "----------------------------------------"
+      echo "Consensus status"
+      __docompose exec consensus beacond --home /beacond status | jq;
+      echo
+      ;;&
+    *reth.yml* )
+      echo "----------------------------------------"
+      echo "Reth Current block number"
+      __docompose exec execution curl --location 'http://localhost:8545' \
+        --header 'Content-Type: application/json' \
+        --data '{
+          "jsonrpc":"2.0",
+          "method":"eth_blockNumber",
+          "params":[],
+          "id":420
+        }';
+      echo
+      ;;&
+  esac
+}
+
 version() {
 # script version
   grep "^This is" README.md
@@ -19,8 +47,12 @@ version() {
 # Client versions
 # Adjust for your clients and how to check their version
   case "${__value}" in
-    *baecond.yml* )
-      __docompose exec consensus cosmovisor version
+    *beacond.yml* )
+      __docompose exec consensus beacond version
+      echo
+      ;;&
+    *reth.yml* )
+      __docompose exec execution reth --version
       echo
       ;;&
   esac
@@ -33,8 +65,17 @@ __env_migrate() {
   fi
 
 # Adjust these vars to your project
-  __all_vars=( COMPOSE_FILE MONIKER NETWORK  \
-              RPC_LB WS_HOST WS_LB  LOG_LEVEL SCRIPT_TAG )
+  __all_vars=( COMPOSE_FILE \
+  BEACOND_DOCKERFILE BEACOND_APP_VERSION \
+  RETH_DOCKERFILE RETH_DOCKER_TAG RETH_DOCKER_REPO \
+  CHAIN_SPEC MONIKER_NAME WALLET_ADDRESS_FEE_RECIPIENT EL_ARCHIVE_NODE MY_IP \
+  CL_P2P_PORT CL_RPC_PORT CL_PROXY_PORT CL_EXTRA_FLAGS \
+  EL_RPC_PORT EL_AUTH_PORT EL_P2P_PORT EL_EXTRA_FLAGS \
+  CL_PROMETHEUS_PORT EL_PROMETHEUS_PORT \
+  DOMAIN RPC_HOST RPC_LB CL_RPC_HOST CL_RPC_LB \
+  LOG_LEVEL \
+  SCRIPT_TAG \
+  DOCKER_EXT_NETWORK)
   __old_vars=( )
   __new_vars=( )
 
@@ -697,14 +738,6 @@ find the original contents in ${__env_file}.bak."
 }
 
 
-__prep_conffiles() {
-# Create ext-network.yml if it doesn't exist
-  if [ ! -f "ext-network.yml" ]; then
-    ${__as_owner} cp ext-network.yml.sample ext-network.yml
-  fi
-}
-
-
 upgrade() {
   update
 }
@@ -829,6 +862,8 @@ help() {
   echo "    stops the ${__app_name} and destroys all data stores"
   echo "  space"
   echo "    show Docker volume space usage"
+  echo "  status"
+  echo "    show status of the clients sync/latest block"
   echo "  help"
   echo "    print this help screen"
   echo
@@ -873,7 +908,6 @@ __params=$*
 
 __handle_root
 __determine_distro
-__prep_conffiles
 
 __check_for_snap
 
@@ -917,7 +951,7 @@ if ! __docompose --help >/dev/null 2>&1; then
 fi
 
 case "$__command" in
-  help|update|up|start|down|stop|restart|version|logs|cmd|terminate|space)
+  help|update|up|start|down|stop|restart|version|logs|cmd|terminate|space|status)
     $__command "$@";;
   *)
     echo "Unrecognized command $__command"
