@@ -20,7 +20,7 @@ export EL_ARCHIVE_NODE="${EL_ARCHIVE_NODE}"
 
 # Determine my IP
 if [ -z "$MY_IP" ]; then
-    export MY_IP=$(curl -s ifconfig.me/ip)
+    export MY_IP=$(curl -4 -s ifconfig.me/ip)
     export MY_IP="${MY_IP:-127.0.0.1}"
 fi
 
