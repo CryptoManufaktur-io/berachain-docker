@@ -34,7 +34,6 @@ services:
     volumes:
       - reth-el-data:/var/lib/reth
       - common-data:/common
-      - ./reth/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
     ports:
       - ${EL_P2P_PORT}:${EL_P2P_PORT}/tcp
       - ${EL_P2P_PORT}:${EL_P2P_PORT}/udp
