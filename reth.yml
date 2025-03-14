@@ -15,8 +15,8 @@ services:
       args:
         - DOCKER_TAG=${RETH_DOCKER_TAG}
         - DOCKER_REPO=${RETH_DOCKER_REPO}
-    stop_grace_period: 5m
-    stop_signal: SIGINT
+    # stop_grace_period: 5m
+    # stop_signal: SIGINT
     image: berachain-reth:${RETH_DOCKER_TAG}
     pull_policy: never
     user: reth

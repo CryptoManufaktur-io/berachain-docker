@@ -17,7 +17,8 @@ services:
     pull_policy: never
     user: beacond
     restart: unless-stopped
-    stop_grace_period: 5m
+    # stop_grace_period: 5m
+    # stop_signal: SIGINT
     environment:
       - CHAIN_SPEC=${CHAIN_SPEC}
       - MONIKER_NAME=${MONIKER_NAME}
