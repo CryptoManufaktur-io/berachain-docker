@@ -72,6 +72,10 @@ reth node 					\
 	--http					\
 	--http.addr 0.0.0.0			\
 	--http.port $EL_ETHRPC_PORT		\
+	--ws \
+	--ws.addr 0.0.0.0 \
+	--ws.port $EL_WSRPC_PORT \
+	--ws.origins '*' \
 	--ipcpath /tmp/reth.ipc.$EL_ETHRPC_PORT \
 	--discovery.port $EL_ETH_PORT	\
 	--http.corsdomain '*'			\

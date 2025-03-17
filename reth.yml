@@ -26,6 +26,7 @@ services:
       - EL_P2P_PORT=${EL_P2P_PORT}
       - PROMETHEUS_PORT=${CL_PROMETHEUS_PORT}
       - EL_RPC_PORT=${EL_RPC_PORT}
+      - EL_WSRPC_PORT=${EL_WSRPC_PORT}
       - MY_IP=${MY_IP}
     networks:
       default:
@@ -53,6 +54,15 @@ services:
       - traefik.http.routers.${RPC_HOST}lb.rule=Host(`${RPC_LB}.${DOMAIN}`)
       - traefik.http.routers.${RPC_HOST}lb.tls.certresolver=letsencrypt
       - traefik.http.services.${RPC_HOST}.loadbalancer.server.port=${EL_RPC_PORT}
+      - traefik.http.routers.${WS_RPC_HOST}.service=${WS_RPC_HOST}
+      - traefik.http.routers.${WS_RPC_HOST}.entrypoints=websecure
+      - traefik.http.routers.${WS_RPC_HOST}.rule=Host(`${WS_RPC_HOST}.${DOMAIN}`)
+      - traefik.http.routers.${WS_RPC_HOST}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${WS_RPC_HOST}lb.service=${WS_RPC_HOST}
+      - traefik.http.routers.${WS_RPC_HOST}lb.entrypoints=websecure
+      - traefik.http.routers.${WS_RPC_HOST}lb.rule=Host(`${WS_RPC_LB}.${DOMAIN}`)
+      - traefik.http.routers.${WS_RPC_HOST}lb.tls.certresolver=letsencrypt
+      - traefik.http.services.${WS_RPC_HOST}.loadbalancer.server.port=${EL_WSRPC_PORT}
       - metrics.scrape=true
       - metrics.path=/metrics
       - metrics.port=${EL_PROMETHEUS_PORT}
