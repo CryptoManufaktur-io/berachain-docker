@@ -20,6 +20,7 @@ services:
     # stop_grace_period: 5m
     # stop_signal: SIGINT
     environment:
+      - BEACOND_APP_VERSION=${BEACOND_APP_VERSION}
       - CHAIN_SPEC=${CHAIN_SPEC}
       - MONIKER_NAME=${MONIKER_NAME}
       - WALLET_ADDRESS_FEE_RECIPIENT=${WALLET_ADDRESS_FEE_RECIPIENT}

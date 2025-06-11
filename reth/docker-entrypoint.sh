@@ -29,8 +29,8 @@ while [ ! -e "$file_path" ]; do
 done
 
 # Initialize
+cp "$SEED_DATA_DIR/eth-genesis.json" "$RETH_GENESIS_PATH"
 if [[ ! -f "${RETH_GENESIS_PATH}" ]]; then
-    cp "$SEED_DATA_DIR/eth-genesis.json" "$RETH_GENESIS_PATH"
     reth init --datadir "$RETH_DATA" --chain "$RETH_GENESIS_PATH"
     echo
     echo "✓ Reth set up."
