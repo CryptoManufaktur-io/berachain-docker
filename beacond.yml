@@ -8,19 +8,20 @@ x-logging: &logging
 
 services:
   consensus:
+    restart: unless-stopped
     build:
       context: ./beacond
       dockerfile: ${BEACOND_DOCKERFILE}
       args:
-        - BEACOND_APP_VERSION=${BEACOND_APP_VERSION}
-    image: berachain-beacond:${BEACOND_APP_VERSION}
-    pull_policy: never
-    user: beacond
-    restart: unless-stopped
+        - BEACOND_DOCKER_TAG=${BEACOND_DOCKER_TAG}
+        - BEACOND_DOCKER_REPO=${BEACOND_DOCKER_REPO}
     # stop_grace_period: 5m
     # stop_signal: SIGINT
+    image: berachain-beacond:${BEACOND_DOCKER_TAG}
+    pull_policy: never
+    user: beacond
     environment:
-      - BEACOND_APP_VERSION=${BEACOND_APP_VERSION}
+      - BEACOND_DOCKER_TAG=${BEACOND_DOCKER_TAG}
       - CHAIN_SPEC=${CHAIN_SPEC}
       - MONIKER_NAME=${MONIKER_NAME}
       - WALLET_ADDRESS_FEE_RECIPIENT=${WALLET_ADDRESS_FEE_RECIPIENT}
@@ -41,7 +42,7 @@ services:
       - common-data:/common
     entrypoint:
       - docker-entrypoint.sh
-      - beacond
+      - bera-beacond
       - start
       - --home
       - /beacond

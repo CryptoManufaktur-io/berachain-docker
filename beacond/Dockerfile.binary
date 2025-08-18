@@ -1,10 +1,16 @@
-ARG RETH_DOCKER_TAG=latest
-ARG RETH_DOCKER_REPO=ghcr.io/berachain/bera-reth
+ARG BEACOND_DOCKER_TAG=main
+ARG BEACOND_DOCKER_REPO=ghcr.io/berachain/beacon-kit
 
-FROM ${RETH_DOCKER_REPO}:${RETH_DOCKER_TAG}
+FROM ${BEACOND_DOCKER_REPO}:${BEACOND_DOCKER_TAG}
 
-ARG USER=reth
+ARG USER=beacond
+ARG DAEMON_HOME=/beacond
+ARG COMMON_PATH=/common
 ARG UID=10001
+
+ENV USER=${USER}
+ENV DAEMON_HOME=${DAEMON_HOME}
+ENV COMMON_PATH=${COMMON_PATH}
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y --no-install-recommends \
   ca-certificates \
@@ -23,13 +29,14 @@ RUN adduser \
     --uid "${UID}" \
     "${USER}"
 
-RUN mkdir -p /var/lib/reth && chown -R ${USER}:${USER} /var/lib/reth && chmod -R 700 /var/lib/reth
+RUN mkdir -p ${DAEMON_HOME} ${COMMON_PATH} && chown -R ${USER}:${USER} ${DAEMON_HOME} ${COMMON_PATH}
 
 # Cannot assume buildkit, hence no chmod
 COPY --chown=${USER}:${USER} ./docker-entrypoint.sh /usr/local/bin/
 # Belt and suspenders
-RUN chmod -R 755 /usr/local/bin/*
+RUN chmod +x /usr/local/bin/*
 
-USER ${USER}
+USER ${USER_NAME}
+WORKDIR ${DAEMON_HOME}
 
-ENTRYPOINT ["bera-reth", "node"]
+ENTRYPOINT ["bera-beacond"]

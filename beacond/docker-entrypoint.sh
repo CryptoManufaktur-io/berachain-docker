@@ -2,7 +2,7 @@
 set -e
 
 # Ensure Beacond binary exists
-command -v beacond >/dev/null 2>&1 || { echo >&2 "Error: Beacond binary not found!"; exit 1; }
+command -v bera-beacond >/dev/null 2>&1 || { echo >&2 "Error: Beacond binary not found!"; exit 1; }
 
 export CHAIN_SPEC="${CHAIN_SPEC}"
 # Set network chain ID
@@ -44,7 +44,7 @@ export SEED_DATA_DIR=/common/seed-data-$CHAIN_SPEC
 # Fetch Berachain parameters
 echo "Fetching Berachain parameters..."
 mkdir -p "$SEED_DATA_DIR"
-SEED_DATA_URL="https://raw.githubusercontent.com/berachain/beacon-kit/refs/tags/$BEACOND_APP_VERSION/testing/networks/$CHAIN_ID"
+SEED_DATA_URL="https://raw.githubusercontent.com/berachain/beacon-kit/refs/tags/$BEACOND_DOCKER_TAG/testing/networks/$CHAIN_ID"
 
 curl -s -o "$SEED_DATA_DIR/kzg-trusted-setup.json" "$SEED_DATA_URL/kzg-trusted-setup.json"
 curl -s -o "$SEED_DATA_DIR/genesis.json" "$SEED_DATA_URL/genesis.json"
@@ -63,10 +63,10 @@ if [ ! -f "$BEACOND_CONFIG/priv_validator_key.json" ]; then
     echo "Initializing..."
     mkdir -p "$BEACOND_DATA" "$BEACOND_CONFIG" "$LOG_DIR"
 
-    beacond init "$MONIKER_NAME" --chain-id "$CHAIN" --home "$BEACOND_DATA"
+    bera-beacond init "$MONIKER_NAME" --chain-id "$CHAIN" --home "$BEACOND_DATA"
 
     # Generate JWT secret
-    beacond jwt generate -o "$JWT_PATH"
+    bera-beacond jwt generate -o "$JWT_PATH"
     echo "✓ JWT secret generated"
 
     # Copy seed data
@@ -97,7 +97,7 @@ if [ ! -f "$BEACOND_CONFIG/genesis.json" ]; then
     exit 1
 fi
 
-beacond genesis validator-root $BEACOND_CONFIG/genesis.json 
+bera-beacond genesis validator-root $BEACOND_CONFIG/genesis.json 
 echo "✓ Beacon-Kit set up. Confirm genesis root is correct."
 
 # Start Beacond

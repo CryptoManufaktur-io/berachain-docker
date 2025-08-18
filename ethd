@@ -19,7 +19,7 @@ status() {
     *beacond.yml* )
       echo "----------------------------------------"
       echo "Consensus status"
-      __docompose exec consensus beacond --home /beacond status | jq;
+      __docompose exec consensus bera-beacond --home /beacond status | jq;
       echo
       ;;&
     *reth.yml* )
@@ -48,11 +48,11 @@ version() {
 # Adjust for your clients and how to check their version
   case "${__value}" in
     *beacond.yml* )
-      __docompose exec consensus beacond version
+      __docompose exec consensus bera-beacond version
       echo
       ;;&
     *reth.yml* )
-      __docompose exec execution reth --version
+      __docompose exec execution bera-reth --version
       echo
       ;;&
   esac
@@ -66,7 +66,7 @@ __env_migrate() {
 
 # Adjust these vars to your project
   __all_vars=( COMPOSE_FILE \
-  BEACOND_DOCKERFILE BEACOND_APP_VERSION \
+  BEACOND_DOCKERFILE BEACOND_DOCKER_TAG BEACOND_DOCKER_REPO \
   RETH_DOCKERFILE RETH_DOCKER_TAG RETH_DOCKER_REPO \
   CHAIN_SPEC MONIKER_NAME WALLET_ADDRESS_FEE_RECIPIENT EL_ARCHIVE_NODE MY_IP \
   CL_P2P_PORT CL_RPC_PORT CL_PROXY_PORT CL_EXTRA_FLAGS \

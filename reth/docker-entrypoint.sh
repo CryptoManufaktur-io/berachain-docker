@@ -30,13 +30,11 @@ done
 
 # Initialize
 cp "$SEED_DATA_DIR/eth-genesis.json" "$RETH_GENESIS_PATH"
-if [[ ! -f "${RETH_GENESIS_PATH}" ]]; then
-    reth init --datadir "$RETH_DATA" --chain "$RETH_GENESIS_PATH"
-    echo
-    echo "✓ Reth set up."
-else
-    echo "Reth already setup"
-fi
+
+# Always init https://docs.berachain.com/nodes/guides/august-2025-upgrade
+bera-reth init --datadir "$RETH_DATA" --chain "$RETH_GENESIS_PATH"
+echo
+echo "✓ Reth done set up."
 
 if [ -f "$SEED_DATA_DIR/el-peers.txt" ]; then
     EL_PEERS=$(grep '^enode://' "$SEED_DATA_DIR/el-peers.txt"| tr '\n' ',' | sed 's/,$//')
@@ -57,7 +55,7 @@ BOOTNODES_OPTION=${EL_BOOTNODES:+--bootnodes $EL_BOOTNODES}
 ARCHIVE_OPTION=$([ "$EL_ARCHIVE_NODE" = true ] && echo "" || echo "--full")
 IP_OPTION=${MY_IP:+--nat extip:$MY_IP}
 
-reth node 					\
+bera-reth node 					\
 	--datadir $RETH_DATA			\
 	--chain $RETH_GENESIS_PATH		\
 	$ARCHIVE_OPTION				\
