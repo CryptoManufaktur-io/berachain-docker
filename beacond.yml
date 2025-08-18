@@ -42,7 +42,7 @@ services:
       - common-data:/common
     entrypoint:
       - docker-entrypoint.sh
-      - bera-beacond
+      - beacond
       - start
       - --home
       - /beacond

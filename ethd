@@ -19,7 +19,7 @@ status() {
     *beacond.yml* )
       echo "----------------------------------------"
       echo "Consensus status"
-      __docompose exec consensus bera-beacond --home /beacond status | jq;
+      __docompose exec consensus beacond --home /beacond status | jq;
       echo
       ;;&
     *reth.yml* )
@@ -48,7 +48,7 @@ version() {
 # Adjust for your clients and how to check their version
   case "${__value}" in
     *beacond.yml* )
-      __docompose exec consensus bera-beacond version
+      __docompose exec consensus beacond version
       echo
       ;;&
     *reth.yml* )

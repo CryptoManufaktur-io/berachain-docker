@@ -12,14 +12,7 @@ ENV USER=${USER}
 ENV DAEMON_HOME=${DAEMON_HOME}
 ENV COMMON_PATH=${COMMON_PATH}
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y --no-install-recommends \
-  ca-certificates \
-  tzdata \
-  curl \
-  gosu \
-  git \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache ca-certificates tzdata curl
 
 # See https://stackoverflow.com/a/55757473/12429735RUN
 RUN adduser \
@@ -39,4 +32,4 @@ RUN chmod +x /usr/local/bin/*
 USER ${USER_NAME}
 WORKDIR ${DAEMON_HOME}
 
-ENTRYPOINT ["bera-beacond"]
+ENTRYPOINT ["beacond"]
