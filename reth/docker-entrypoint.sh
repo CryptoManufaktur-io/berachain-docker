@@ -31,7 +31,7 @@ done
 # Initialize
 if [ -n "$RETH_GENESIS_URL_OVERRIDE" ]; then
 	curl -s -o "$RETH_GENESIS_PATH" "$RETH_GENESIS_URL_OVERRIDE"
-fi
+else
 	cp "$SEED_DATA_DIR/eth-genesis.json" "$RETH_GENESIS_PATH"
 fi
 
