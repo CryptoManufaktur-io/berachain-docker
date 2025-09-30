@@ -44,7 +44,12 @@ export SEED_DATA_DIR=/common/seed-data-$CHAIN_SPEC
 # Fetch Berachain parameters
 echo "Fetching Berachain parameters..."
 mkdir -p "$SEED_DATA_DIR"
-SEED_DATA_URL="https://raw.githubusercontent.com/berachain/beacon-kit/refs/tags/$BEACOND_DOCKER_TAG/testing/networks/$CHAIN_ID"
+
+if [ -n "$GENESIS_URL_OVERRIDE" ]; then
+	SEED_DATA_URL="$GENESIS_URL_OVERRIDE"
+else
+	SEED_DATA_URL="https://raw.githubusercontent.com/berachain/beacon-kit/refs/tags/$BEACOND_DOCKER_TAG/testing/networks/$CHAIN_ID"
+fi
 
 curl -s -o "$SEED_DATA_DIR/kzg-trusted-setup.json" "$SEED_DATA_URL/kzg-trusted-setup.json"
 curl -s -o "$SEED_DATA_DIR/genesis.json" "$SEED_DATA_URL/genesis.json"

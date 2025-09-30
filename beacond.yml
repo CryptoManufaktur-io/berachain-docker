@@ -21,6 +21,7 @@ services:
     pull_policy: never
     user: beacond
     environment:
+      - GENESIS_URL_OVERRIDE=${GENESIS_URL_OVERRIDE}
       - BEACOND_DOCKER_TAG=${BEACOND_DOCKER_TAG}
       - CHAIN_SPEC=${CHAIN_SPEC}
       - MONIKER_NAME=${MONIKER_NAME}
