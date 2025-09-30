@@ -29,7 +29,11 @@ while [ ! -e "$file_path" ]; do
 done
 
 # Initialize
-cp "$SEED_DATA_DIR/eth-genesis.json" "$RETH_GENESIS_PATH"
+if [ -n "$RETH_GENESIS_URL_OVERRIDE" ]; then
+	curl -s -o "$RETH_GENESIS_PATH" "$RETH_GENESIS_URL_OVERRIDE"
+fi
+	cp "$SEED_DATA_DIR/eth-genesis.json" "$RETH_GENESIS_PATH"
+fi
 
 # Always init https://docs.berachain.com/nodes/guides/august-2025-upgrade
 bera-reth init --datadir "$RETH_DATA" --chain "$RETH_GENESIS_PATH"
