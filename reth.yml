@@ -28,6 +28,7 @@ services:
       - EL_RPC_PORT=${EL_RPC_PORT}
       - EL_WSRPC_PORT=${EL_WSRPC_PORT}
       - MY_IP=${MY_IP}
+      - EL_EXTRAS=${EL_EXTRAS:-}
     networks:
       default:
         aliases:

@@ -74,7 +74,7 @@ __env_migrate() {
   CL_PROMETHEUS_PORT EL_PROMETHEUS_PORT \
   DOMAIN RPC_HOST RPC_LB CL_RPC_HOST CL_RPC_LB \
   LOG_LEVEL \
-  SCRIPT_TAG \
+  SCRIPT_TAG EL_EXTRAS \
   DOCKER_EXT_NETWORK)
   __old_vars=( )
   __new_vars=( )

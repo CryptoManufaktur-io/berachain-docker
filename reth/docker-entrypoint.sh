@@ -62,6 +62,7 @@ bera-reth node 					\
     $BOOTNODES_OPTION			\
 	$PEERS_OPTION				\
 	$IP_OPTION				\
+	$EL_EXTRAS \
 	--authrpc.addr 0.0.0.0		\
 	--authrpc.port $EL_AUTHRPC_PORT		\
 	--authrpc.jwtsecret $JWT_PATH		\
