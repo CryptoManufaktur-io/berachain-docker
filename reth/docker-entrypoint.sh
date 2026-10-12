@@ -67,7 +67,7 @@ bera-reth node 					\
 	--authrpc.port $EL_AUTHRPC_PORT		\
 	--authrpc.jwtsecret $JWT_PATH		\
 	--port $EL_ETH_PORT			\
-	--metrics $PROMETHEUS_PORT		\
+	--metrics 0.0.0.0:$PROMETHEUS_PORT	\
 	--http					\
 	--http.addr 0.0.0.0			\
 	--http.port $EL_ETHRPC_PORT		\
